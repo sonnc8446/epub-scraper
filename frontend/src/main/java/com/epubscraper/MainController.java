@@ -25,7 +25,7 @@ public class MainController {
     private final HttpClient httpClient = HttpClient.newHttpClient();
     
     // ĐỔI DÒNG NÀY THÀNH URL CỦA RENDER SAU KHI DEPLOY, VÍ DỤ: "https://my-app.onrender.com/api/v1"
-    private final String API_BASE_URL = "http://localhost:8000/api/v1"; 
+    private final String API_BASE_URL = "https://epub-scraper.onrender.com/api/v1"; 
     
     private ScheduledExecutorService scheduler;
 
