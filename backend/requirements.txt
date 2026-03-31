@@ -1,0 +1,7 @@
+fastapi==0.104.1
+uvicorn==0.23.2
+httpx==0.25.0
+beautifulsoup4==4.12.2
+playwright==1.39.0
+playwright-stealth==1.0.6
+EbookLib==0.18

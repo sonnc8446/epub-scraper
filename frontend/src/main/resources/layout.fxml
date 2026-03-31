@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox spacing="15" alignment="CENTER" prefWidth="500" prefHeight="400" 
+      xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" 
+      fx:controller="com.epubscraper.MainController">
+    <padding>
+        <Insets top="20" right="20" bottom="20" left="20"/>
+    </padding>
+
+    <Label text="HỆ THỐNG TẢI TRUYỆN EPUB" style="-fx-font-size: 18px; -fx-font-weight: bold;"/>
+    
+    <TextField fx:id="urlInput" promptText="Nhập URL truyện (VD: https://truyenfull.vn/...)" />
+    <TextField fx:id="titleInput" promptText="Nhập tên truyện sẽ lưu" />
+    <TextField fx:id="maxChaptersInput" promptText="Số chương tối đa (VD: 100)" text="100"/>
+    
+    <Button fx:id="startBtn" text="Bắt Đầu Tải Truyện" onAction="#startScrapingJob" 
+            style="-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-weight: bold;"/>
+    
+    <ProgressBar fx:id="progressBar" progress="0.0" prefWidth="460" />
+    <Label fx:id="statusLabel" text="Trạng thái: Sẵn sàng." />
+</VBox>
