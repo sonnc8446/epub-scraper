@@ -1,5 +1,6 @@
 from fastapi import FastAPI, BackgroundTasks, HTTPException
 from fastapi.responses import FileResponse
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import uuid
 import os
@@ -9,6 +10,15 @@ from app.scraper import NovelScraper
 from app.epub_builder import EpubBuilder
 
 app = FastAPI(title="ePub Scraper API", version="1.0")
+
+# BỔ SUNG CẤU HÌNH CORS TẠI ĐÂY ĐỂ VERCEL CÓ THỂ GỌI API
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Cho phép tất cả các tên miền gọi tới API
+    allow_credentials=True,
+    allow_methods=["*"],  # Cho phép tất cả các phương thức (GET, POST, OPTIONS)
+    allow_headers=["*"],  # Cho phép tất cả các headers
+)
 
 jobs = {}
 
