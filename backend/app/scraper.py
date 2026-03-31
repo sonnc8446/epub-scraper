@@ -3,7 +3,7 @@ import asyncio
 import logging
 from bs4 import BeautifulSoup
 from playwright.async_api import async_playwright
-from playwright_stealth import Stealth
+from playwright_stealth import stealth_async
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -37,7 +37,8 @@ class NovelScraper:
             context = await browser.new_context(user_agent=self.headers["User-Agent"])
             page = await context.new_page()
 
-            await Stealth().apply_stealth_async(page)
+            # Đã sửa: Gọi trực tiếp hàm stealth_async để tàng hình trình duyệt
+            await stealth_async(page)
 
             try:
                 await page.goto(url, wait_until="domcontentloaded", timeout=60000)
