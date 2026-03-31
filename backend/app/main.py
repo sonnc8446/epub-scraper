@@ -19,7 +19,7 @@ class ScrapeRequest(BaseModel):
     max_chapters: int = 100
 
 async def process_novel_task(job_id: str, request: ScrapeRequest):
-    jobs[job_id] = {"status": "running", "progress": 0, "message": "Đang khởi tạo...", "file_path": None}
+    jobs[job_id] = {"status": "running", "progress": 0, "message": "Đang khởi tạo...", "file_path": None, "title": request.title}
     scraper = NovelScraper()
     builder = EpubBuilder(title=request.title, author=request.author)
     

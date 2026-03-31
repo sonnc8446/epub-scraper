@@ -1,0 +1,15 @@
+/* styles.css */
+html, body {
+    margin: 0;
+    padding: 0;
+}
+
+#progressBar {
+    width: 0;
+}
+
+#progressBar.active {
+    transition: width 0.5s ease;
+}
+
+/* Tailwind utility already applies most of the look; additional custom styles can go here. */

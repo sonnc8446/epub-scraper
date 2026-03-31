@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hệ Thống Tải Truyện ePub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
+
+    <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-md">
+        <h1 class="text-2xl font-bold text-center text-gray-800 mb-6">Tải Truyện ePub</h1>
+        
+        <div class="space-y-4">
+            <div>
+                <label for="urlInput" class="block text-sm font-medium text-gray-700">URL Truyện</label>
+                <input type="text" id="urlInput" name="url" title="URL truyện" placeholder="VD: https://truyenfull.vn/..." 
+                       class="mt-1 block w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md text-sm shadow-sm placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+            </div>
+
+            <div>
+                <label for="titleInput" class="block text-sm font-medium text-gray-700">Tên Truyện</label>
+                <input type="text" id="titleInput" name="title" title="Tên truyện" placeholder="Nhập tên truyện để lưu" 
+                       class="mt-1 block w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md text-sm shadow-sm placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+            </div>
+
+            <div>
+                <label for="maxChaptersInput" class="block text-sm font-medium text-gray-700">Số Chương Tối Đa</label>
+                <input type="number" id="maxChaptersInput" name="maxChapters" title="Số chương tối đa" placeholder="100" value="100" 
+                       class="mt-1 block w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md text-sm shadow-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+            </div>
+
+            <button id="startBtn" onclick="startScraping()" 
+                    class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
+                Bắt Đầu Tải Truyện
+            </button>
+        </div>
+
+        <div id="progressContainer" class="hidden mt-6">
+            <div class="w-full bg-gray-200 rounded-full h-2.5 mb-2">
+                <div id="progressBar" class="bg-blue-600 h-2.5 rounded-full transition-all duration-500 active"></div>
+            </div>
+            <p id="statusLabel" class="text-sm text-center text-gray-600 font-medium">Đang khởi tạo...</p>
+        </div>
+    </div>
+
+    <script>
+        // CHÚ Ý: THAY ĐỔI ĐƯỜNG LINK NÀY THÀNH LINK RENDER CỦA BẠN
+        const API_BASE_URL = "https://epub-scraper.onrender.com/api/v1";
+        let pollingInterval;
+
+        async function startScraping() {
+            const url = document.getElementById('urlInput').value;
+            const title = document.getElementById('titleInput').value;
+            let maxChapters = parseInt(document.getElementById('maxChaptersInput').value, 10);
+            if (Number.isNaN(maxChapters) || maxChapters <= 0) {
+                maxChapters = 100;
+            }
+            const statusLabel = document.getElementById('statusLabel');
+            const startBtn = document.getElementById('startBtn');
+            const progressContainer = document.getElementById('progressContainer');
+
+            if (!url ||!title) {
+                alert("Vui lòng nhập đầy đủ URL và Tên truyện!");
+                return;
+            }
+
+            startBtn.disabled = true;
+            startBtn.classList.add("opacity-50", "cursor-not-allowed");
+            progressContainer.classList.remove("hidden");
+            statusLabel.innerText = "Đang gửi yêu cầu tới máy chủ...";
+
+            try {
+                // Gọi API tạo tiến trình
+                const response = await fetch(`${API_BASE_URL}/scraper/jobs`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url, title, max_chapters: maxChapters, author: "Unknown" })
+                });
+
+                if (!response.ok) throw new Error("Lỗi kết nối tới Backend");
+                
+                const data = await response.json();
+                statusLabel.innerText = "Đang chạy tác vụ nền...";
+                
+                // Bắt đầu vòng lặp kiểm tra tiến độ mỗi 2 giây
+                pollingInterval = setInterval(() => checkStatus(data.job_id, title), 2000);
+
+            } catch (error) {
+                statusLabel.innerText = "Lỗi: Không thể kết nối tới máy chủ Python.";
+                startBtn.disabled = false;
+                startBtn.classList.remove("opacity-50", "cursor-not-allowed");
+            }
+        }
+
+        async function checkStatus(jobId, title) {
+            const statusLabel = document.getElementById('statusLabel');
+            const progressBar = document.getElementById('progressBar');
+            const startBtn = document.getElementById('startBtn');
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/scraper/jobs/${jobId}`);
+                const data = await response.json();
+
+                progressBar.style.width = `${data.progress}%`;
+                statusLabel.innerText = `${data.message} (${data.progress}%)`;
+
+                if (data.status === "completed") {
+                    clearInterval(pollingInterval);
+                    statusLabel.innerText = "Đang tải tệp về máy...";
+                    
+                    // Tự động kích hoạt tải file ePub
+                    const downloadUrl = `${API_BASE_URL}/ebooks/${jobId}/download`;
+                    const a = document.createElement('a');
+                    a.href = downloadUrl;
+                    a.download = `${title.replace(/ /g, '_')}.epub`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+
+                    statusLabel.innerText = "Thành công! Tệp đã được tải xuống.";
+                    startBtn.disabled = false;
+                    startBtn.classList.remove("opacity-50", "cursor-not-allowed");
+                } else if (data.status === "failed") {
+                    clearInterval(pollingInterval);
+                    statusLabel.innerText = "Lỗi: Tiến trình thất bại.";
+                    startBtn.disabled = false;
+                    startBtn.classList.remove("opacity-50", "cursor-not-allowed");
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        }
+    </script>
+</body>
+</html>
