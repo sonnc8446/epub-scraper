@@ -1,5 +1,5 @@
-# Sử dụng ảnh Python chính thức
-FROM python:3.11
+# Sử dụng ảnh Python chính thức với hệ điều hành ổn định (Debian 12 Bookworm)
+FROM python:3.11-bookworm
 
 # Đặt thư mục làm việc
 WORKDIR /app
