@@ -34,10 +34,14 @@ async def process_novel_task(job_id: str, request: ScrapeRequest):
     builder = EpubBuilder(title=request.title, author=request.author)
     
     try:
-        jobs[job_id]["message"] = f"Đang phân tích URL truyện: {request.url}"
+        # Tự động nhận diện và thêm https:// nếu URL bị thiếu
+        base_url = request.url if request.url.startswith("http") else f"https://{request.url}"
+        
+        jobs[job_id]["message"] = f"Đang phân tích URL truyện: {base_url}"
         await asyncio.sleep(1) 
         
-        chapter_urls = [f"{request.url}/chuong-{i}" for i in range(1, request.max_chapters + 1)]
+        # Sử dụng base_url thay vì request.url
+        chapter_urls = [f"{base_url}/chuong-{i}" for i in range(1, request.max_chapters + 1)]
         total_chapters = len(chapter_urls)
         
         for index, chap_url in enumerate(chapter_urls):
