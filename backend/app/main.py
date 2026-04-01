@@ -5,6 +5,7 @@ from pydantic import BaseModel
 import uuid
 import os
 import asyncio
+import gc
 
 from app.scraper import NovelScraper
 from app.epub_builder import EpubBuilder
@@ -40,6 +41,15 @@ async def process_novel_task(job_id: str, request: ScrapeRequest):
         jobs[job_id]["message"] = f"Đang phân tích URL truyện: {base_url}"
         await asyncio.sleep(1) 
         
+        # --- BỔ SUNG LOGIC NHẬN DIỆN TRANG WEB ĐỂ DÙNG ĐÚNG CSS SELECTOR ---
+        if "tramtruyen.vip" in base_url:
+            content_sel = "#chapter-content"
+            title_sel = "#chapter-content p:first-of-type"
+        else:
+            content_sel = "div.chapter-c"
+            title_sel = "a.chapter-title"
+        # ------------------------------------------------------------------
+
         # Sử dụng base_url thay vì request.url
         chapter_urls = [f"{base_url}/chuong-{i}" for i in range(1, request.max_chapters + 1)]
         total_chapters = len(chapter_urls)
@@ -48,7 +58,13 @@ async def process_novel_task(job_id: str, request: ScrapeRequest):
             jobs[job_id]["message"] = f"Đang tải chương {index + 1}/{total_chapters}"
             
             html = await scraper.fetch_html(chap_url)
-            extracted_data = scraper.clean_and_extract_chapter(html)
+            
+            # Truyền bộ chọn CSS linh hoạt vào hàm làm sạch
+            extracted_data = scraper.clean_and_extract_chapter(
+                html, 
+                content_selector=content_sel, 
+                title_selector=title_sel
+            )
             
             builder.add_chapter(
                 title=extracted_data["title"], 
@@ -57,6 +73,11 @@ async def process_novel_task(job_id: str, request: ScrapeRequest):
             )
             
             jobs[job_id]["progress"] = int(((index + 1) / total_chapters) * 100)
+            
+            # Tối ưu bộ nhớ: dừng 1 giây và dọn rác mỗi 5 chương để tránh quá tải RAM
+            await asyncio.sleep(1)
+            if (index + 1) % 5 == 0:
+                gc.collect()
             
         jobs[job_id]["message"] = "Đang đóng gói và biên dịch tệp ePub..."
         os.makedirs("downloads", exist_ok=True)
