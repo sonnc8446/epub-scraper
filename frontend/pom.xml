@@ -7,9 +7,9 @@
     <artifactId>epub-scraper-ui</artifactId>
     <version>1.0-SNAPSHOT</version>
     <properties>
-        <maven.compiler.source>11</maven.compiler.source>
-        <maven.compiler.target>11</maven.compiler.target>
-        <javafx.version>25.0.1</javafx.version>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
+        <javafx.version>21.0.2</javafx.version>
         <javafx.platform>mac</javafx.platform>
     </properties>
     <dependencies>
