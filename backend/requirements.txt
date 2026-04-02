@@ -8,3 +8,8 @@ EbookLib==0.18
 supabase>=2.8.2
 fastapi-mail==1.4.1
 email-validator==2.1.0
+python-multipart==0.0.5
+pytest==7.3.1
+pytest-asyncio==0.20.3
+pytest-cov==4.0.0
+pytest-mock==3.10.0
