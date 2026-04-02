@@ -32,13 +32,11 @@ class NovelScraper:
             return await self.fetch_html_with_playwright(url)
 
     async def fetch_html_with_playwright(self, url: str) -> str:
-        async with async_playwright() as p:
+        # Bọc async_playwright() bằng stealth_async() theo chuẩn API 2.0.0
+        async with stealth_async(async_playwright()) as p:
             browser = await p.chromium.launch(headless=True)
             context = await browser.new_context(user_agent=self.headers["User-Agent"])
             page = await context.new_page()
-
-            # Đã sửa: Gọi trực tiếp hàm stealth_async để tàng hình trình duyệt
-            await stealth_async(page)
 
             try:
                 await page.goto(url, wait_until="domcontentloaded", timeout=60000)
@@ -47,7 +45,6 @@ class NovelScraper:
                 return html
             finally:
                 await browser.close()
-
     def clean_and_extract_chapter(self, html: str, content_selector: str = "div.chapter-c", title_selector: str = "a.chapter-title") -> dict:
         soup = BeautifulSoup(html, "html.parser")
         
